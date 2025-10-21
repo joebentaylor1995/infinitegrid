@@ -2,12 +2,11 @@
 
 // Imports
 // ------------
-import InfiniteGL from '@parts/InfiniteGL';
+import InfiniteGridGsap from '@/components/InfiniteGridGsap';
 
 // Interfaces
 // ------------
 import { HomeProps } from '@/types/home';
-import InfiniteGridGsap from '@/components/InfiniteGridGsap';
 
 // Component
 // ------------
