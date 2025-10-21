@@ -23,6 +23,8 @@ export const defaultTextStyle: TextStyle = {
     tagsFont: 'Inter, system-ui, sans-serif',
     gap: 10,
     padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundOpacity: 0.5,
 };
 
 export function generateTextTexture(
