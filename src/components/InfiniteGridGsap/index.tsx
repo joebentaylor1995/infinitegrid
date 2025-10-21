@@ -5,7 +5,7 @@
 import Project from './Project';
 import gsap from 'gsap';
 import { theme } from '@theme';
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { dummyData } from './dummyData';
 import { Observer } from 'gsap/Observer';
@@ -38,6 +38,15 @@ const InfiniteGridGsap = ({ infiniteData, hasClip = true  }: InfiniteGridGsapPro
     // Helper to get all project anchor refs flattened
     const getAllProjectAnchors = () => 
         projectRefs.current.flat().filter((el): el is HTMLAnchorElement => !!el);
+
+    // Set overflow hidden on the body to prevent scrolling
+    useLayoutEffect(() => {
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, []);
 
     // Infinite Animation
     useEffect(() => {

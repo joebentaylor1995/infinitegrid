@@ -49,19 +49,6 @@ export const Jacket = styled(Section)<{ $hasClip: boolean }>(
                 }
             `}
         }
-
-        // Mobile performance optimizations
-        @media (max-width: 768px) {
-            // Disable expensive active states on mobile
-            &:active {
-                scale: 1;
-                
-                a {
-                    clip-path: none;
-                    img { scale: 1 }
-                }
-            }
-        }
     `
 );
 
