@@ -1,3 +1,4 @@
+
 // Imports
 // ------------
 import styled, { css } from 'styled-components';
@@ -25,20 +26,40 @@ export const Jacket = styled(Section)<{ $hasClip: boolean }>(
         overscroll-behavior-x: none;
         overflow: hidden;
 
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+
         width: 100%;
         height: 100lvh;
         scale: 1;
         transition: scale var(--dur) var(--ease);
 
         &:active {
-            scale: var(--zoom);
+            ${bp.l`
+                scale: var(--zoom);
 
-            a {
-                ${props.$hasClip && css`
-                    clip-path: inset(var(--inset) round var(--br));
+                a {
+                    ${props.$hasClip && css`
+                        clip-path: inset(var(--inset) round var(--br));
 
-                    img { scale: 0.9 }
-                `}
+                        img { scale: 0.9 }
+                    `}
+                }
+            `}
+        }
+
+        // Mobile performance optimizations
+        @media (max-width: 768px) {
+            // Disable expensive active states on mobile
+            &:active {
+                scale: 1;
+                
+                a {
+                    clip-path: none;
+                    img { scale: 1 }
+                }
             }
         }
     `
@@ -52,6 +73,12 @@ export const Container = styled.div(
         grid-template-columns: repeat(var(--cols), 1fr);
         width: max-content;
         will-change: transform;
+        
+        // Mobile performance: Use GPU acceleration
+        @media (max-width: 768px) {
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
     `
 );
 

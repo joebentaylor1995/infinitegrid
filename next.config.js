@@ -67,6 +67,18 @@ const nextConfig = {
 		},
 	},
 
+	// Webpack configuration for GLSL imports
+	webpack: (config, { isServer }) => {
+		// Add rule for GLSL files
+		config.module.rules.push({
+			test: /\.(glsl|vs|fs|vert|frag)$/,
+			exclude: /node_modules/,
+			type: 'asset/source',
+		});
+
+		return config;
+	},
+
 	// Headers configuration
 	async headers() {
 		return [
