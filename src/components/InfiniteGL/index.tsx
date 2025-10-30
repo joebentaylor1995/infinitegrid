@@ -9,65 +9,8 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { dummyData } from './dummyData';
 import { Observer } from 'gsap/Observer';
-import { generateTextTexture } from './textureGenerator';
-import { textStyles } from './textStyles';
-
-// Shaders for individual textures (no distortion here)
-// ------------
-const textureVertexShader = `
-varying vec2 vUv;
-
-void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-}
-`;
-
-const textureFragmentShader = `
-uniform sampler2D uTexture;
-uniform float uAlpha;
-
-varying vec2 vUv;
-
-void main() {
-    vec4 textureColor = texture2D(uTexture, vUv);
-    gl_FragColor = vec4(textureColor.rgb, textureColor.a * uAlpha);
-}
-`;
-
-// Post-processing shaders (distortion applied to entire scene)
-// ------------
-const postVertexShader = `
-varying vec2 vUv;
-
-void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-}
-`;
-
-const postFragmentShader = `
-uniform sampler2D tDiffuse;
-uniform float uDistortionStrength;
-
-varying vec2 vUv;
-
-vec2 barrelPincushion(vec2 uv, float strength) {
-    vec2 st = uv - 0.5;
-    float radius = 1.0 + strength * dot(st, st);
-    return 0.5 + radius * st;
-}
-
-void main() {
-    // Apply barrel/pincushion distortion to the entire scene
-    vec2 distortedUv = barrelPincushion(vUv, uDistortionStrength);
-    
-    // Sample the rendered scene with distorted UVs
-    vec4 sceneColor = texture2D(tDiffuse, distortedUv);
-    
-    gl_FragColor = sceneColor;
-}
-`;
+import { Text } from 'troika-three-text';
+import { vertexTexture, fragmentTexture, vertexPost, fragmentPost } from './shaders';
 
 // Styles
 // ------------
@@ -76,6 +19,122 @@ import * as S from './styles';
 // Interfaces
 // ------------
 import { InfiniteGLProps, ProjectPlaneData } from './interface';
+
+// Constants
+// ------------
+// Responsive breakpoint
+const MOBILE_BREAKPOINT = 768;
+
+// Helper to get responsive grid layout
+const getGridLayout = () => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
+    
+    if (isMobile) {
+        // Mobile: Fixed width cards
+        const PLANE_WIDTH = 320;
+        const PLANE_HEIGHT = PLANE_WIDTH * (3 / 4); // Maintain 4:3 aspect ratio (240px)
+        return {
+            PLANE_WIDTH,
+            PLANE_HEIGHT,
+            COLS: 2,
+            GAP: 12,
+            PADDING: 6,
+        };
+    } else {
+        // Desktop: Fixed size cards
+        const PLANE_WIDTH = 400;
+        const PLANE_HEIGHT = PLANE_WIDTH * (3 / 4); // Maintain 4:3 aspect ratio (300px)
+        return {
+            PLANE_WIDTH,
+            PLANE_HEIGHT,
+            COLS: 5,
+            GAP: 12,
+            PADDING: 6,
+        };
+    }
+};
+
+// Grid Layout - will be recalculated on mount and resize
+let PLANE_WIDTH = 400;
+let PLANE_HEIGHT = 300;
+let COLS = 5;
+let GAP = 12;
+let PADDING = GAP / 2;
+
+// Distortion - responsive values
+const getDistortionSettings = () => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
+    
+    if (isMobile) {
+        return {
+            STARTING_DISTORTION: -0.5,
+            BASE_DISTORTION: 0,
+            DISTORTION_AMOUNT: -0.25, // Reduced for mobile
+            MAX_DISTORTION: -0.2, // Reduced for mobile
+            VELOCITY_SCALE: 0.010, // Reduced sensitivity for mobile
+            LOAD_IN_DURATION: 0.4,
+            ANIMATION_DURATION: 0.35, // Near-instant for native feel
+            DRAG_MULTIPLIER: 2, // Maximum direct response for native feel
+            LONG_PRESS_THRESHOLD: 300, // Faster tap detection for mobile
+        };
+    } else {
+        return {
+            STARTING_DISTORTION: -0.5,
+            BASE_DISTORTION: 0,
+            DISTORTION_AMOUNT: -0.5,
+            MAX_DISTORTION: -0.5,
+            VELOCITY_SCALE: 0.010,
+            LOAD_IN_DURATION: 0.8,
+            ANIMATION_DURATION: 1.5, // Smooth desktop experience
+            DRAG_MULTIPLIER: 2,
+            LONG_PRESS_THRESHOLD: 500,
+        };
+    }
+};
+
+// Distortion - will be updated on mount
+let STARTING_DISTORTION = -0.5;
+let BASE_DISTORTION = 0;
+let DISTORTION_AMOUNT = -0.5;
+let MAX_DISTORTION = -0.5;
+let VELOCITY_SCALE = 0.010;
+let LOAD_IN_DURATION = 1.2;
+let ANIMATION_DURATION = 1.5;
+let DRAG_MULTIPLIER = 2;
+let LONG_PRESS_THRESHOLD = 500;
+
+// Animation
+const ANIMATION_EASE = "power4";
+const DISTORTION_PRESS_DURATION = 0.4;
+const DISTORTION_RELEASE_DURATION = 0.6;
+const DISTORTION_SCROLL_DURATION = 0.3;
+const DISTORTION_RESET_DURATION = 0.5;
+const SCROLL_STOP_DELAY = 150;
+
+// Interaction
+const DRAG_MINIMUM = 5;
+const HOVER_SCALE = 1.05; // Image zoom on hover (1.0 = no zoom, 1.1 = 10% zoom)
+const HOVER_DURATION = 0.4; // Hover animation duration in seconds
+
+// Helper Functions
+// ------------
+/** Calculate grid dimensions based on data length */
+const calculateGridDimensions = (dataLength: number) => {
+    const rows = Math.ceil(dataLength / COLS);
+    const contentWidth = PADDING * 2 + COLS * PLANE_WIDTH + (COLS - 1) * GAP;
+    const contentHeight = PADDING * 2 + rows * PLANE_HEIGHT + (rows - 1) * GAP;
+    return { rows, contentWidth, contentHeight };
+};
+
+/** Animate distortion strength smoothly */
+const animateDistortion = (targetRef: React.RefObject<number>, value: number, duration: number, ease: string, onComplete?: () => void) => {
+    gsap.to(targetRef, {
+        current: value,
+        duration,
+        ease,
+        onComplete,
+    });
+};
 
 // Component
 // ------------
@@ -94,15 +153,55 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
     const projectPlanesRef = useRef<ProjectPlaneData[]>([]);
     const raycasterRef = useRef<THREE.Raycaster>(new THREE.Raycaster());
     const mouseRef = useRef<THREE.Vector2>(new THREE.Vector2());
+    const allTexturesLoadedRef = useRef(false);
 
     // Animation refs
-    const distortionStrengthRef = useRef(0);
-    const targetDistortionRef = useRef(0);
+    const distortionStrengthRef = useRef(-0.5); // Start with STARTING_DISTORTION
+    const targetDistortionRef = useRef(-0.5); // Start with STARTING_DISTORTION
+    const hoveredMeshRef = useRef<THREE.Mesh | null>(null);
+    const isDraggingRef = useRef(false);
 
     // Main Three.js setup
     useEffect(() => {
         if (!canvasRef.current) return;
 
+        // Update grid layout based on viewport size
+        const layout = getGridLayout();
+        PLANE_WIDTH = layout.PLANE_WIDTH;
+        PLANE_HEIGHT = layout.PLANE_HEIGHT;
+        COLS = layout.COLS;
+        GAP = layout.GAP;
+        PADDING = layout.PADDING;
+
+        // Update distortion settings based on viewport size
+        const distortionSettings = getDistortionSettings();
+        STARTING_DISTORTION = distortionSettings.STARTING_DISTORTION;
+        BASE_DISTORTION = distortionSettings.BASE_DISTORTION;
+        DISTORTION_AMOUNT = distortionSettings.DISTORTION_AMOUNT;
+        MAX_DISTORTION = distortionSettings.MAX_DISTORTION;
+        VELOCITY_SCALE = distortionSettings.VELOCITY_SCALE;
+        LOAD_IN_DURATION = distortionSettings.LOAD_IN_DURATION;
+        ANIMATION_DURATION = distortionSettings.ANIMATION_DURATION;
+        DRAG_MULTIPLIER = distortionSettings.DRAG_MULTIPLIER;
+        LONG_PRESS_THRESHOLD = distortionSettings.LONG_PRESS_THRESHOLD;
+
+        // Initialize distortion refs to STARTING_DISTORTION
+        distortionStrengthRef.current = STARTING_DISTORTION;
+        targetDistortionRef.current = STARTING_DISTORTION;
+
+        document.body.style.overflow = 'hidden';
+        document.body.style.touchAction = 'none'; // Prevent browser gestures on mobile
+        
+        // Prevent pull-to-refresh and swipe navigation on mobile
+        const preventTouchDefaults = (e: TouchEvent) => {
+            if (e.touches.length > 1) {
+                e.preventDefault(); // Prevent pinch zoom
+            }
+        };
+        
+        document.addEventListener('touchstart', preventTouchDefaults, { passive: false });
+        document.addEventListener('touchmove', preventTouchDefaults, { passive: false });
+        
         // Scene setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
@@ -132,13 +231,6 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         rendererRef.current = renderer;
 
-        // Match original grid exactly
-        const COLS = 5;
-        const GAP = 12;
-        const PADDING = GAP / 2; // 6px
-        const PLANE_WIDTH = 400;
-        const PLANE_HEIGHT = 300;
-
         // Texture loader
         const textureLoader = new THREE.TextureLoader();
         textureLoader.setCrossOrigin('anonymous');
@@ -146,11 +238,20 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
         // Create planes
         const projectPlanes: ProjectPlaneData[] = [];
 
+        // Track texture loading
+        const totalTextures = 4 * data.length; // 4 duplicates * data length
+        let loadedTextures = 0;
+
+        const checkAllTexturesLoaded = () => {
+            loadedTextures++;
+            if (loadedTextures === totalTextures) {
+                allTexturesLoadedRef.current = true;
+            }
+        };
+
         // Calculate Content block size (with CSS grid gap behavior)
         // CSS grid gap only goes BETWEEN items, not on edges, but we have padding on edges
-        const rows = Math.ceil(data.length / COLS);
-        const contentWidth = PADDING * 2 + COLS * PLANE_WIDTH + (COLS - 1) * GAP;
-        const contentHeight = PADDING * 2 + rows * PLANE_HEIGHT + (rows - 1) * GAP;
+        const { rows, contentWidth, contentHeight } = calculateGridDimensions(data.length);
 
         // Container is 2x2 of Content blocks
         for (let duplicateIndex = 0; duplicateIndex < 4; duplicateIndex++) {
@@ -175,9 +276,14 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                     uniforms: {
                         uTexture: { value: null },
                         uAlpha: { value: 0 },
+                        uGrayscale: { value: 1.0 }, // Start grayscale
+                        uOverlayOpacity: { value: 0.2 }, // 20% black overlay
+                        uResolution: { value: new THREE.Vector2(PLANE_WIDTH, PLANE_HEIGHT) },
+                        uBorderRadius: { value: 6.0 }, // 6px border radius
+                        uScale: { value: 1.0 }, // Image scale (1.0 = normal)
                     },
-                    vertexShader: textureVertexShader,
-                    fragmentShader: textureFragmentShader,
+                    vertexShader: vertexTexture,
+                    fragmentShader: fragmentTexture,
                     transparent: true,
                     side: THREE.DoubleSide,
                 });
@@ -191,10 +297,12 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                         texture.magFilter = THREE.LinearFilter;
                         material.uniforms.uTexture.value = texture;
                         material.needsUpdate = true;
+                        checkAllTexturesLoaded();
                     },
                     undefined,
                     (error) => {
                         console.error('Error loading texture:', error);
+                        checkAllTexturesLoaded(); // Count even if error to prevent hanging
                     }
                 );
 
@@ -215,55 +323,104 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                 scene.add(mesh);
                 projectPlanes.push({ mesh, material, userData });
 
-                // Create text overlay plane
-                const textCanvas = generateTextTexture(
-                    project.title,
-                    project.tags,
-                    PLANE_WIDTH,
-                    PLANE_HEIGHT,
-                    textStyles
-                );
+                // Create SDF text for title
+                const titleText = new Text();
+                titleText.text = project.title.toUpperCase();
+                titleText.fontSize = 12;
+                titleText.font = '/fonts/sequel-85.ttf';
+                titleText.color = 0xFFFFFF;
+                titleText.anchorX = 'left';
+                titleText.anchorY = 'bottom';
+                titleText.letterSpacing = 0.072; // 6% at 12px font size
+                titleText.maxWidth = PLANE_WIDTH - 24; // Account for padding
+                titleText.outlineWidth = 0;
+                titleText.depthOffset = -1; // Render in front
+                titleText.sdfGlyphSize = 128; // Higher resolution SDF (default is 64, can go to 128)
+                titleText.gpuAccelerateSDF = true; // Use GPU for better performance
+                titleText.curveRadius = 0; // Sharp corners for crisp text
+                titleText.lineHeight = 1.2; // 120% line height
                 
-                const textTexture = new THREE.CanvasTexture(textCanvas);
-                textTexture.minFilter = THREE.LinearFilter;
-                textTexture.magFilter = THREE.LinearFilter;
+                // Position text at bottom left of plane
+                const textPadding = 18;
+                const titleFontSize = 12;
+                const tagsFontSize = 10;
+                const textGap = 6; // Vertical gap (in px) between tags and project title text (used for layout)
+                
+                // Start from bottom of plane
+                const bottomY = y - PLANE_HEIGHT / 2;
+                const titleBottomY = bottomY + textPadding + tagsFontSize + textGap; // Title above tags
+                
+                const textX = x - PLANE_WIDTH / 2 + textPadding; // Left of plane + padding
+                titleText.position.set(textX, titleBottomY, 1);
+                
+                // Set opacity to 0 for fade-in
+                titleText.fillOpacity = 0;
+                
+                scene.add(titleText);
+                titleText.sync(); // Important: sync to generate the geometry
 
-                const textMaterial = new THREE.ShaderMaterial({
-                    uniforms: {
-                        uTexture: { value: textTexture },
-                        uAlpha: { value: 0 },
-                    },
-                    vertexShader: textureVertexShader,
-                    fragmentShader: textureFragmentShader,
-                    transparent: true,
-                    side: THREE.DoubleSide,
-                    depthWrite: false, // Don't write to depth buffer for proper transparency
-                });
+                // Create SDF text for tags
+                const tagsText = new Text();
+                tagsText.text = project.tags.join(' — ');
+                tagsText.fontSize = tagsFontSize;
+                tagsText.font = '/fonts/inter-400.ttf'; // Use same font as title for consistency
+                tagsText.color = 0xffffff;
+                tagsText.fillOpacity = 0.6;
+                tagsText.anchorX = 'left';
+                tagsText.anchorY = 'bottom';
+                tagsText.letterSpacing = 0;
+                tagsText.maxWidth = PLANE_WIDTH - 24;
+                tagsText.outlineWidth = 0;
+                tagsText.depthOffset = -1;
+                tagsText.sdfGlyphSize = 128; // Higher resolution SDF (default is 64, can go to 128)
+                tagsText.gpuAccelerateSDF = true; // Use GPU for better performance
+                tagsText.curveRadius = 0; // Sharp corners for crisp text
+                
+                // Position tags below title
+                const tagsY = titleBottomY - titleFontSize - textGap;
+                tagsText.position.set(textX, tagsY, 2); // Z=2 to stay in front
+                
+                // Set opacity to 0 for fade-in
+                tagsText.fillOpacity = 0;
+                
+                scene.add(tagsText);
+                tagsText.sync();
 
-                const textGeometry = new THREE.PlaneGeometry(PLANE_WIDTH, PLANE_HEIGHT);
-                const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-                textMesh.position.set(x, y, 1); // Slightly in front of image
-                textMesh.userData = userData;
-
-                scene.add(textMesh);
-                projectPlanes.push({ mesh: textMesh, material: textMaterial, userData });
+                // Store text objects for fade-in animation
+                titleText.userData = { ...userData, isText: true, type: 'title' };
+                tagsText.userData = { ...userData, isText: true, type: 'tags' };
             });
         }
 
         projectPlanesRef.current = projectPlanes;
 
         // Start at 0,0 - the center of the 2x2 grid where all 4 duplicates meet
-        scene.position.x = 0;
-        scene.position.y = 0;
+        // On mobile, offset to center the first card in view
+        const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+        
+        if (isMobile) {
+            // Position to center the first card (itemCol=0, itemRow=0)
+            const firstCardX = PADDING + PLANE_WIDTH / 2;
+            const firstCardY = -(PADDING + PLANE_HEIGHT / 2);
+            
+            // To center this card in viewport, scene position is negative of card position
+            scene.position.x = -firstCardX;
+            scene.position.y = -firstCardY; // This will be positive, moving scene up
+        } else {
+            scene.position.x = 0;
+            scene.position.y = 0;
+        }
 
-        // Create render target for post-processing
+        // Create render target for post-processing with higher resolution for text clarity
+        const pixelRatio = Math.min(window.devicePixelRatio, 2);
         const renderTarget = new THREE.WebGLRenderTarget(
-            window.innerWidth,
-            window.innerHeight,
+            window.innerWidth * pixelRatio,
+            window.innerHeight * pixelRatio,
             {
                 minFilter: THREE.LinearFilter,
                 magFilter: THREE.LinearFilter,
                 format: THREE.RGBAFormat,
+                samples: 8, // MSAA antialiasing for better text quality
             }
         );
 
@@ -277,8 +434,8 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                 tDiffuse: { value: renderTarget.texture },
                 uDistortionStrength: { value: 0 },
             },
-            vertexShader: postVertexShader,
-            fragmentShader: postFragmentShader,
+            vertexShader: vertexPost,
+            fragmentShader: fragmentPost,
         });
         
         const postPlane = new THREE.PlaneGeometry(2, 2);
@@ -317,17 +474,25 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
             camera.bottom = frustumSize / -2;
             camera.updateProjectionMatrix();
 
+            const pixelRatio = Math.min(window.devicePixelRatio, 2);
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setPixelRatio(pixelRatio);
             
-            // Resize render target
-            renderTarget.setSize(window.innerWidth, window.innerHeight);
+            // Resize render target with pixel ratio for clarity
+            renderTarget.setSize(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
         };
 
         window.addEventListener('resize', handleResize);
 
         // Cleanup
         return () => {
+            document.body.style.overflow = 'auto';
+            document.body.style.cursor = 'auto';
+            document.body.style.touchAction = 'auto';
+            
+            document.removeEventListener('touchstart', preventTouchDefaults);
+            document.removeEventListener('touchmove', preventTouchDefaults);
+            
             cancelAnimationFrame(animationFrameId);
             window.removeEventListener('resize', handleResize);
             
@@ -357,22 +522,7 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
         if (!sceneRef.current) return;
 
         const scene = sceneRef.current;
-
-        // NOTE • Animation settings
-        const ANIMATION = {
-            EASE: "power4",
-            DURATION: 1.5,
-        };
-
-        // Calculate wrapping - use same dimensions as scene setup
-        const COLS = 5;
-        const GAP = 12;
-        const PADDING = GAP / 2;
-        const PLANE_WIDTH = 400;
-        const PLANE_HEIGHT = 300;
-        const rows = Math.ceil(data.length / COLS);
-        const contentWidth = PADDING * 2 + COLS * PLANE_WIDTH + (COLS - 1) * GAP;
-        const contentHeight = PADDING * 2 + rows * PLANE_HEIGHT + (rows - 1) * GAP;
+        const { contentWidth, contentHeight } = calculateGridDimensions(data.length);
 
         // Wrap at HALF of one Content block to keep duplicates always visible
         // This ensures wrapping happens off-screen before gaps appear
@@ -381,8 +531,8 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
         
         const wrapX = gsap.utils.wrap(-halfX, halfX);
         const xTo = gsap.quickTo(scene.position, 'x', {
-            duration: ANIMATION.DURATION,
-            ease: ANIMATION.EASE,
+            duration: ANIMATION_DURATION,
+            ease: ANIMATION_EASE,
             modifiers: {
                 x: gsap.utils.unitize(wrapX)
             }
@@ -390,41 +540,58 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
 
         const wrapY = gsap.utils.wrap(-halfY, halfY);
         const yTo = gsap.quickTo(scene.position, 'y', {
-            duration: ANIMATION.DURATION,
-            ease: ANIMATION.EASE,
+            duration: ANIMATION_DURATION,
+            ease: ANIMATION_EASE,
             modifiers: {
                 y: gsap.utils.unitize(wrapY)
             }
         });
 
-        // Start at 0,0 - center of the 2x2 grid
-        let incrX = 0;
-        let incrY = 0;
+        // Start at initial scene position
+        let incrX = scene.position.x;
+        let incrY = scene.position.y;
         let hasDragged = false;
         let clickedMesh: THREE.Mesh | null = null;
         let pressStartTime = 0;
-        const LONG_PRESS_THRESHOLD = 500;
-        const DISTORTION_AMOUNT = -0.5; // Negative for pincushion, positive for barrel
-        const MAX_DISTORTION = -0.5;
-        const VELOCITY_SCALE = 0.010; // Scale factor for velocity to distortion
         let scrollTimeout: NodeJS.Timeout | null = null;
 
         Observer.create({
             target: window,
             type: "wheel,touch,pointer",
-            dragMinimum: 5,
+            dragMinimum: DRAG_MINIMUM,
             onPress: (self) => {
                 if (!self.event.target) return;
 
                 hasDragged = false;
+                isDraggingRef.current = false;
                 pressStartTime = Date.now();
+
+                // Change cursor to grabbing
+                document.body.style.cursor = 'grabbing';
+
+                // Apply distortion immediately on press for smooth transition
+                animateDistortion(targetDistortionRef, DISTORTION_AMOUNT, DISTORTION_PRESS_DURATION, theme.easing.bezzy3);
 
                 // Raycast to detect clicked mesh
                 const canvas = canvasRef.current;
-                if (canvas && cameraRef.current && self.event instanceof MouseEvent) {
+                if (canvas && cameraRef.current && self.event) {
                     const rect = canvas.getBoundingClientRect();
-                    const x = ((self.event.clientX - rect.left) / rect.width) * 2 - 1;
-                    const y = -((self.event.clientY - rect.top) / rect.height) * 2 + 1;
+                    let clientX: number;
+                    let clientY: number;
+
+                    // Handle both mouse and touch events
+                    if (self.event instanceof MouseEvent) {
+                        clientX = self.event.clientX;
+                        clientY = self.event.clientY;
+                    } else if (self.event instanceof TouchEvent && self.event.touches.length > 0) {
+                        clientX = self.event.touches[0].clientX;
+                        clientY = self.event.touches[0].clientY;
+                    } else {
+                        return; // Unsupported event type
+                    }
+
+                    const x = ((clientX - rect.left) / rect.width) * 2 - 1;
+                    const y = -((clientY - rect.top) / rect.height) * 2 + 1;
 
                     mouseRef.current.set(x, y);
                     raycasterRef.current.setFromCamera(mouseRef.current, cameraRef.current);
@@ -440,13 +607,16 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
             },
             onDrag: () => {
                 hasDragged = true;
-                // Apply distortion on drag
-                targetDistortionRef.current = DISTORTION_AMOUNT;
+                isDraggingRef.current = true;
             },
             onRelease: () => {
-                // Remove distortion
-                targetDistortionRef.current = 0;
+                // Smoothly return to base distortion
+                animateDistortion(targetDistortionRef, BASE_DISTORTION, DISTORTION_RELEASE_DURATION, theme.easing.bezzy2);
 
+                // Reset cursor to standard
+                document.body.style.cursor = 'auto';
+
+                isDraggingRef.current = false;
                 const pressDuration = Date.now() - pressStartTime;
                 const isQuickClick = pressDuration < LONG_PRESS_THRESHOLD;
 
@@ -470,28 +640,19 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
             onChangeX: (self) => {
                 if (self.event.type === "wheel") {
                     incrX -= self.deltaX;
+                    
                     // Apply distortion based on wheel velocity
                     const velocity = Math.abs(self.velocityX);
                     const distortion = Math.max(MAX_DISTORTION, -velocity * VELOCITY_SCALE);
-                    
-                    // Animate distortion smoothly with GSAP
-                    gsap.to(targetDistortionRef, {
-                        current: distortion,
-                        duration: 0.3,
-                        ease: theme.easing.bezzy2,
-                    });
+                    animateDistortion(targetDistortionRef, distortion, DISTORTION_SCROLL_DURATION, theme.easing.bezzy2);
                     
                     // Reset distortion after scrolling stops
                     if (scrollTimeout) clearTimeout(scrollTimeout);
                     scrollTimeout = setTimeout(() => {
-                        gsap.to(targetDistortionRef, {
-                            current: 0,
-                            duration: 0.6,
-                            ease: theme.easing.bezzy2,
-                        });
-                    }, 150);
+                        animateDistortion(targetDistortionRef, BASE_DISTORTION, DISTORTION_RELEASE_DURATION, theme.easing.bezzy2);
+                    }, SCROLL_STOP_DELAY);
                 } else {
-                    incrX += self.deltaX * 2; // Follow drag direction
+                    incrX += self.deltaX * DRAG_MULTIPLIER;
                 }
 
                 xTo(incrX);
@@ -499,28 +660,19 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
             onChangeY: (self) => {
                 if (self.event.type === "wheel") {
                     incrY += self.deltaY; // Inverted for WebGL Y coordinate system
+                    
                     // Apply distortion based on wheel velocity
                     const velocity = Math.abs(self.velocityY);
                     const distortion = Math.max(MAX_DISTORTION, -velocity * VELOCITY_SCALE);
-                    
-                    // Animate distortion smoothly with GSAP
-                    gsap.to(targetDistortionRef, {
-                        current: distortion,
-                        duration: 0.3,
-                        ease: theme.easing.bezzy2,
-                    });
+                    animateDistortion(targetDistortionRef, distortion, DISTORTION_SCROLL_DURATION, theme.easing.bezzy3);
                     
                     // Reset distortion after scrolling stops
                     if (scrollTimeout) clearTimeout(scrollTimeout);
                     scrollTimeout = setTimeout(() => {
-                        gsap.to(targetDistortionRef, {
-                            current: 0,
-                            duration: 0.6,
-                            ease: theme.easing.bezzy2,
-                        });
-                    }, 150);
+                        animateDistortion(targetDistortionRef, BASE_DISTORTION, DISTORTION_RESET_DURATION, theme.easing.bezzy3);
+                    }, SCROLL_STOP_DELAY);
                 } else {
-                    incrY -= self.deltaY * 2; // Follow drag direction
+                    incrY -= self.deltaY * DRAG_MULTIPLIER;
                 }
 
                 yTo(incrY);
@@ -529,59 +681,152 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
 
     }, [data, router]);
 
-    // Load-in animation
+    // Hover detection for grayscale and overlay effects
     useEffect(() => {
-        if (projectPlanesRef.current.length === 0) return;
+        if (!canvasRef.current || !cameraRef.current) return;
 
-        // Wait a bit for textures to load
-        setTimeout(() => {
-            const planes = projectPlanesRef.current;
+        // Skip hover effects on mobile
+        const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+        if (isMobile) return;
 
-            // Set initial state
-            planes.forEach(({ material, mesh }) => {
-                gsap.set(material.uniforms.uAlpha, { value: 0 });
-                gsap.set(material.uniforms.uScale, { value: 0 });
-                gsap.set(mesh.scale, { x: 0, y: 0, z: 1 });
-            });
+        const canvas = canvasRef.current;
+        const camera = cameraRef.current;
 
-            // Animate in with random stagger
-            gsap.to(
-                planes.map(p => p.mesh.scale),
-                {
-                    x: 1,
-                    y: 1,
-                    duration: 1,
-                    ease: theme.easing.bezzy2,
-                    stagger: {
-                        amount: 1,
-                        from: 'random',
-                        ease: theme.easing.bezzy2,
-                    },
-                    onUpdate: function() {
-                        // Sync alpha with scale
-                        const index = Math.floor(this.progress() * planes.length);
-                        if (index < planes.length) {
-                            planes[index].material.uniforms.uAlpha.value = this.progress();
+        const handleMouseMove = (event: MouseEvent) => {
+            // Skip hover effects while dragging
+            if (isDraggingRef.current) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            mouseRef.current.set(x, y);
+            raycasterRef.current.setFromCamera(mouseRef.current, camera);
+
+            // Raycast against all image meshes
+            const imageMeshes = projectPlanesRef.current.map(p => p.mesh);
+
+            const intersects = raycasterRef.current.intersectObjects(imageMeshes);
+
+            if (intersects.length > 0) {
+                const hoveredMesh = intersects[0].object as THREE.Mesh;
+                
+                // If hovering a new mesh, update effects
+                if (hoveredMesh !== hoveredMeshRef.current) {
+                    // Reset previous hovered mesh to grayscale
+                    if (hoveredMeshRef.current) {
+                        const prevMaterial = hoveredMeshRef.current.material as THREE.ShaderMaterial;
+                        gsap.to(prevMaterial.uniforms.uGrayscale, {
+                            value: 1.0,
+                            duration: 0.3,
+                            ease: 'power2.out',
+                        });
+                        gsap.to(prevMaterial.uniforms.uOverlayOpacity, {
+                            value: 0.2,
+                            duration: 0.3,
+                            ease: 'power2.out',
+                        });
+                        gsap.to(prevMaterial.uniforms.uScale, {
+                            value: 1.0,
+                            duration: HOVER_DURATION,
+                            ease: theme.easing.bezzy3,
+                        });
+                    }
+
+                    // Set new hovered mesh to color and zoom
+                    hoveredMeshRef.current = hoveredMesh;
+                    const material = hoveredMesh.material as THREE.ShaderMaterial;
+                    gsap.to(material.uniforms.uGrayscale, {
+                        value: 0.0,
+                        duration: 0.3,
+                        ease: 'power2.out',
+                    });
+                    gsap.to(material.uniforms.uOverlayOpacity, {
+                        value: 0.0,
+                        duration: 0.3,
+                        ease: 'power2.out',
+                    });
+                    gsap.to(material.uniforms.uScale, {
+                        value: HOVER_SCALE,
+                        duration: HOVER_DURATION,
+                        ease: theme.easing.bezzy3,
+                    });
+                }
+            } else {
+                // No hover - reset current hovered mesh
+                if (hoveredMeshRef.current) {
+                    const material = hoveredMeshRef.current.material as THREE.ShaderMaterial;
+                    gsap.to(material.uniforms.uGrayscale, {
+                        value: 1.0,
+                        duration: 0.3,
+                        ease: 'power2.out',
+                    });
+                    gsap.to(material.uniforms.uOverlayOpacity, {
+                        value: 0.2,
+                        duration: 0.3,
+                        ease: 'power2.out',
+                    });
+                    gsap.to(material.uniforms.uScale, {
+                        value: 1.0,
+                        duration: HOVER_DURATION,
+                        ease: theme.easing.bezzy3,
+                    });
+                    hoveredMeshRef.current = null;
+                }
+            }
+        };
+
+        canvas.addEventListener('mousemove', handleMouseMove);
+
+        return () => {
+            canvas.removeEventListener('mousemove', handleMouseMove);
+        };
+    }, []);
+
+    // Load-in animation - wait for textures, then fade in with distortion
+    useEffect(() => {
+        if (projectPlanesRef.current.length === 0 || !sceneRef.current) return;
+
+        // Check if all textures are loaded
+        const checkInterval = setInterval(() => {
+            if (allTexturesLoadedRef.current) {
+                clearInterval(checkInterval);
+                
+                const planes = projectPlanesRef.current;
+
+                // Fade in all image planes
+                gsap.to(
+                    planes.map(p => p.material.uniforms.uAlpha),
+                    {
+                        value: 1,
+                        duration: LOAD_IN_DURATION,
+                        ease: theme.easing.bezzy3,
+                    }
+                );
+
+                // Fade in all text objects
+                const scene = sceneRef.current;
+                if (scene) {
+                    scene.traverse((obj) => {
+                        if (obj instanceof Text) {
+                            // Tags at 60% opacity, titles at 100%
+                            const targetOpacity = obj.userData.type === 'tags' ? 0.6 : 1.0;
+                            gsap.to(obj, {
+                                fillOpacity: targetOpacity,
+                                duration: LOAD_IN_DURATION,
+                                ease: theme.easing.bezzy3,
+                            });
                         }
-                    }
+                    });
                 }
-            );
 
-            // Animate alpha separately
-            gsap.to(
-                planes.map(p => p.material.uniforms.uAlpha),
-                {
-                    value: 1,
-                    duration: 1,
-                    ease: theme.easing.bezzy2,
-                    stagger: {
-                        amount: 1,
-                        from: 'random',
-                        ease: theme.easing.bezzy2,
-                    }
-                }
-            );
-        }, 500);
+                // Animate distortion from STARTING_DISTORTION to BASE_DISTORTION
+                animateDistortion(targetDistortionRef, BASE_DISTORTION, LOAD_IN_DURATION, theme.easing.bezzy3);
+            }
+        }, 100);
+
+        // Cleanup interval on unmount
+        return () => clearInterval(checkInterval);
 
     }, []);
 

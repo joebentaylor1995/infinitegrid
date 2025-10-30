@@ -2,7 +2,8 @@
 
 // Imports
 // ------------
-import InfiniteGridGsap from '@/components/InfiniteGridGsap';
+import InfiniteGridGsap from '@parts/InfiniteGridGsap';
+import InfiniteGL from '@parts/InfiniteGL';
 
 // Interfaces
 // ------------
@@ -13,7 +14,8 @@ import { HomeProps } from '@/types/home';
 const Content = ({ data }: HomeProps) => {
 	return (
 		<>
-			<InfiniteGridGsap />
+			{/* <InfiniteGridGsap /> */}
+			<InfiniteGL />
 		</>
 	);
 };

@@ -1,7 +1,7 @@
 // Imports
 // ------------
 import { Inter } from 'next/font/google';
-// import localFont from 'next/font/local';
+import localFont from 'next/font/local';
 import { Fonts } from './interface';
 
 // SECTION • Inter font configuration optimized with swap display for better loading performance
@@ -14,34 +14,24 @@ export const inter = Inter({
 });
 
 // SECTION • Local font configuration
-// export const heebo = localFont({
-// 	src: [
-// 		{
-// 			path: './heebo/Heebo-Light.woff2',
-// 			weight: '300',
-// 			style: 'normal',
-// 		},
-// 		{
-// 			path: './heebo/Heebo-Regular.woff2',
-// 			weight: '400',
-// 			style: 'normal',
-// 		},
-// 		{
-// 			path: './heebo/Heebo-Medium.woff2',
-// 			weight: '500',
-// 			style: 'normal',
-// 		},
-// 	],
-// 	display: 'swap',
-// 	variable: '--heebo',
-// 	preload: true,
-// });
+export const sequel = localFont({
+	src: [
+		{
+			path: './sequel/sequel-85.ttf',
+			weight: '400',
+			style: 'normal',
+		},
+	],
+	display: 'swap',
+	variable: '--sequel',
+	preload: true,
+});
 
 // Exports
 // ------------
 export const fonts: Fonts = {
 	family: {
-		heading: `var(--inter), Arial, sans-serif`,
+		heading: `var(--sequel), Arial, sans-serif`,
 		body: `var(--inter), Arial, sans-serif`,
 		mono: `var(--inter), Arial, sans-serif`,
 		script: `var(--inter), Arial, sans-serif`,

@@ -30,13 +30,6 @@ export const Media = styled(Image)(
         filter: grayscale(100%);
         transition: filter var(--dur) var(--ease), scale var(--dur) var(--ease);
         
-        // Mobile performance optimizations
-        @media (max-width: 768px) {
-            // Disable expensive filters on mobile
-            filter: none;
-            transition: none;
-            --zoom: 1; // Disable zoom on mobile
-        }
     `
 );
 

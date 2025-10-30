@@ -15,11 +15,12 @@ export const Jacket = styled(Section)<{ $hasClip: boolean }>(
 
         background: ${getGlobal('black')};
         color: ${getGlobal('white')};
-        overscroll-behavior-x: none;
+        overscroll-behavior: none;
         overflow: hidden;
+        touch-action: none;
 
         width: 100%;
-        height: 100lvh;
+        height: 100svh;
         scale: 1;
         transition: scale var(--dur) var(--ease);
 
@@ -31,6 +32,7 @@ export const Jacket = styled(Section)<{ $hasClip: boolean }>(
             display: block;
             width: 100%;
             height: 100%;
+            touch-action: none;
         }
     `
 );

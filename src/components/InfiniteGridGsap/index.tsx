@@ -53,13 +53,10 @@ const InfiniteGridGsap = ({ infiniteData, hasClip = true  }: InfiniteGridGsapPro
         // Early bail for SSR/hydration
         if (!containerRef.current || !jacketRef.current) return;
 
-        // Performance optimization: Reduce duplicates on mobile
-        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-        
-        // NOTE • Animation settings (faster on mobile for better performance)
+        // NOTE • Animation settings
         const ANIMATION = {
             EASE: "power4",
-            DURATION: isMobile ? 1.0 : 1.5,
+            DURATION: 1.5,
         }
 
         // X Animation
@@ -95,7 +92,6 @@ const InfiniteGridGsap = ({ infiniteData, hasClip = true  }: InfiniteGridGsapPro
             target: window,
             type: "wheel,touch,pointer",
             dragMinimum: 5,
-            tolerance: isMobile ? 20 : 10, // Higher tolerance on mobile for better performance
             onPress: (self) => {
                 // Early bail for SSR/hydration
                 if (!self.event.target) return;
@@ -150,7 +146,7 @@ const InfiniteGridGsap = ({ infiniteData, hasClip = true  }: InfiniteGridGsapPro
                 if (self.event.type === "wheel")
                     incrX -= self.deltaX
                 else
-                    incrX += self.deltaX * (isMobile ? 1.5 : 2) // Less aggressive on mobile
+                    incrX += self.deltaX * 2
 
                 xTo(incrX)
             },
@@ -158,7 +154,7 @@ const InfiniteGridGsap = ({ infiniteData, hasClip = true  }: InfiniteGridGsapPro
                 if (self.event.type === "wheel")
                     incrY -= self.deltaY
                 else
-                    incrY += self.deltaY * (isMobile ? 1.5 : 2) // Less aggressive on mobile
+                    incrY += self.deltaY * 2
 
                 yTo(incrY)
             }

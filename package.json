@@ -51,6 +51,7 @@
 		"styled-components": "^6.1.19",
 		"tar": "^7.4.3",
 		"three": "^0.180.0",
+		"troika-three-text": "^0.52.4",
 		"tweakpane": "^4.0.5",
 		"unicornstudio-react": "^1.4.29"
 	},

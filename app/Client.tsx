@@ -6,7 +6,7 @@ import AnimationPlugins from '@parts/AnimationPlugins';
 import Contexts from '@parts/Contexts';
 import CookieBar from '@parts/CookieBar';
 import { GlobalStyle, theme } from '@theme';
-import { inter } from '@theme/fonts';
+import { sequel } from '@theme/fonts';
 import StyledComponentsRegistry from '@utils/registry';
 import { gsap } from 'gsap';
 import type { LenisRef } from 'lenis/react';
@@ -25,7 +25,7 @@ const GridExposer = dynamic(() => import('@parts/GridExposer'), {
 // ------------
 const Client = ({ children }: { children: React.ReactNode }) => {
 	// NOTE • Font Classes
-	const classes = `${inter.variable}`;
+	const classes = `${sequel.variable}`;
 
 	// NOTE • Lenis Setup
 	const lenisRef = useRef<LenisRef>(null);
