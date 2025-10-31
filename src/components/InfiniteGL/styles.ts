@@ -20,7 +20,7 @@ export const Jacket = styled(Section)<{ $hasClip: boolean }>(
         touch-action: none;
 
         width: 100%;
-        height: 100svh;
+        height: 100dvh;
         scale: 1;
         transition: scale var(--dur) var(--ease);
 
