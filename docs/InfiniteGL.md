@@ -306,6 +306,30 @@ return mix(1.0 - intensity, 1.0, vignetteMask);
 - Creates smooth, elegant load experience
 - Uses GSAP timeline with stagger
 
+#### **5. Texture Caching**
+
+- Textures are loaded once and cached in memory
+- Same image URL reuses cached texture (no re-download)
+- Prevents duplicate network requests
+- Shares textures across grid duplicates (4 copies use same texture)
+- Reduces memory usage and improves performance
+- Automatically disposed on component unmount
+
+**How it works:**
+
+```typescript
+// Cache stores loaded textures by URL
+textureCacheRef = Map<string, THREE.Texture>
+
+// Loading promises prevent duplicate simultaneous loads
+textureLoadingRef = Map<string, Promise<THREE.Texture>>
+
+// Load flow:
+1. Check cache → if found, return immediately
+2. Check if loading → if yes, wait for existing promise
+3. Not found → load texture, cache it, return
+```
+
 ### Interaction System
 
 #### **Mouse/Touch Input**

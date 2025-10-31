@@ -147,6 +147,60 @@ const animateDistortion = (targetRef: React.RefObject<number>, value: number, du
     });
 };
 
+/**
+ * Load texture with caching
+ * - Checks cache first
+ * - Prevents duplicate loads for same URL
+ * - Returns promise that resolves with cached or newly loaded texture
+ */
+const loadTextureWithCache = (
+    url: string,
+    textureLoader: THREE.TextureLoader,
+    cache: Map<string, THREE.Texture>,
+    loadingPromises: Map<string, Promise<THREE.Texture>>
+): Promise<THREE.Texture> => {
+    // Return cached texture if available
+    if (cache.has(url)) {
+        return Promise.resolve(cache.get(url)!);
+    }
+
+    // Return existing loading promise if texture is currently being loaded
+    if (loadingPromises.has(url)) {
+        return loadingPromises.get(url)!;
+    }
+
+    // Create new loading promise
+    const loadingPromise = new Promise<THREE.Texture>((resolve, reject) => {
+        textureLoader.load(
+            url,
+            (texture) => {
+                // Configure texture
+                texture.minFilter = THREE.LinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                
+                // Store in cache
+                cache.set(url, texture);
+                
+                // Remove from loading promises
+                loadingPromises.delete(url);
+                
+                resolve(texture);
+            },
+            undefined,
+            (error) => {
+                // Remove from loading promises on error
+                loadingPromises.delete(url);
+                reject(error);
+            }
+        );
+    });
+
+    // Store loading promise to prevent duplicate loads
+    loadingPromises.set(url, loadingPromise);
+
+    return loadingPromise;
+};
+
 // Component
 // ------------
 const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
@@ -165,6 +219,10 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
     const raycasterRef = useRef<THREE.Raycaster>(new THREE.Raycaster());
     const mouseRef = useRef<THREE.Vector2>(new THREE.Vector2());
     const allTexturesLoadedRef = useRef(false);
+
+    // Texture caching
+    const textureCacheRef = useRef<Map<string, THREE.Texture>>(new Map());
+    const textureLoadingRef = useRef<Map<string, Promise<THREE.Texture>>>(new Map());
 
     // Animation refs
     const distortionStrengthRef = useRef(-0.5); // Start with STARTING_DISTORTION
@@ -201,7 +259,9 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
         targetDistortionRef.current = STARTING_DISTORTION;
 
         document.body.style.overflow = 'hidden';
+        document.body.style.overscrollBehavior = 'none';
         document.body.style.touchAction = 'none'; // Prevent browser gestures on mobile
+        
         
         // Prevent pull-to-refresh and swipe navigation on mobile
         const preventTouchDefaults = (e: TouchEvent) => {
@@ -301,23 +361,18 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                     side: THREE.DoubleSide,
                 });
 
-                // Load texture
+                // Load texture with caching
                 const imageSrc = typeof project.image === 'string' ? project.image : project.image.src;
-                textureLoader.load(
-                    imageSrc,
-                    (texture) => {
-                        texture.minFilter = THREE.LinearFilter;
-                        texture.magFilter = THREE.LinearFilter;
+                loadTextureWithCache(imageSrc, textureLoader, textureCacheRef.current, textureLoadingRef.current)
+                    .then((texture) => {
                         material.uniforms.uTexture.value = texture;
                         material.needsUpdate = true;
                         checkAllTexturesLoaded();
-                    },
-                    undefined,
-                    (error) => {
+                    })
+                    .catch((error) => {
                         console.error('Error loading texture:', error);
                         checkAllTexturesLoaded(); // Count even if error to prevent hanging
-                    }
-                );
+                    });
 
                 // Create image mesh
                 const mesh = new THREE.Mesh(geometry, material);
@@ -524,14 +579,19 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
             // Dispose renderer
             renderer.dispose();
             
-            // Dispose project planes
+            // Dispose project planes (but NOT textures - they're cached)
             projectPlanes.forEach(({ mesh, material }) => {
                 mesh.geometry.dispose();
                 material.dispose();
-                if (material.uniforms.uTexture.value) {
-                    material.uniforms.uTexture.value.dispose();
-                }
+                // Don't dispose textures here - they're cached and shared
             });
+            
+            // Dispose all cached textures
+            textureCacheRef.current.forEach((texture) => {
+                texture.dispose();
+            });
+            textureCacheRef.current.clear();
+            textureLoadingRef.current.clear();
         };
     }, [data]);
 

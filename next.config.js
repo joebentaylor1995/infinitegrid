@@ -93,6 +93,12 @@ const nextConfig = {
 			},
 		];
 	},
+
+	// Explicitly allow 192.168.88.38 as a development origin for cross-origin requests to /_next/*
+	allowedDevOrigins: [
+		'http://192.168.88.38:3000', // adjust the port if needed
+		'http://192.168.88.38',
+	],
 };
 
 module.exports = nextConfig;

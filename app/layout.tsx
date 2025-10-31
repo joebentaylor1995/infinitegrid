@@ -1,12 +1,21 @@
 // Imports
 // ------------
 import '@/theme/tackl/waffl/WebComponent';
+import type { Viewport } from 'next';
 import Client from './Client';
 import Server from './Server';
 
 // Styles
 // ------------
 import '@css/global.css';
+
+// Metadata
+// ------------
+export const viewport: Viewport = {
+	width: 'device-width',
+	initialScale: 1,
+	viewportFit: 'cover',
+};
 
 // Component
 // ------------

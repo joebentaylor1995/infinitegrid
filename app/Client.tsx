@@ -43,13 +43,6 @@ const Client = ({ children }: { children: React.ReactNode }) => {
 
 	return (
 		<html lang='en' className={classes}>
-			<head>
-				<meta
-					name="viewport"
-					content="width=device-width, initial-scale=1, viewport-fit=cover"
-				/>
-			</head>
-			
 			<body>
 				<StyledComponentsRegistry>
 					<ThemeProvider theme={theme} key='themeprovider'>
