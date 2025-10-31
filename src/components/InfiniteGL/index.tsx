@@ -38,7 +38,9 @@ const IMAGE_VIGNETTE_POWER = 0.4; // Falloff curve for image vignette
 
 // Helper to get responsive grid layout
 const getGridLayout = () => {
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+    const isMobile = viewportWidth < MOBILE_BREAKPOINT;
+    const isLargeScreen = viewportWidth > 2000;
     
     if (isMobile) {
         // Mobile: Fixed width cards
@@ -51,8 +53,33 @@ const getGridLayout = () => {
             GAP: 12,
             PADDING: 6,
         };
+    } else if (isLargeScreen) {
+        // Large screens (2000px+): Scale based on viewport width
+        // Calculate plane width as a percentage of viewport (e.g., ~18vw with 5 columns + gaps)
+        // Formula: (viewport - padding - gaps) / columns
+        const COLS = 5;
+        const GAP = 12;
+        const PADDING = 6;
+        
+        // Reserve space for padding and gaps
+        const totalGaps = (COLS - 1) * GAP;
+        const totalPadding = PADDING * 2;
+        const availableWidth = viewportWidth - totalGaps - totalPadding;
+        
+        // Divide by columns, with a minimum of 400px
+        const calculatedWidth = availableWidth / COLS;
+        const PLANE_WIDTH = Math.max(400, calculatedWidth);
+        const PLANE_HEIGHT = PLANE_WIDTH * (3 / 4); // Maintain 4:3 aspect ratio
+        
+        return {
+            PLANE_WIDTH,
+            PLANE_HEIGHT,
+            COLS,
+            GAP,
+            PADDING,
+        };
     } else {
-        // Desktop: Fixed size cards
+        // Desktop (768px - 2000px): Fixed size cards
         const PLANE_WIDTH = 400;
         const PLANE_HEIGHT = PLANE_WIDTH * (3 / 4); // Maintain 4:3 aspect ratio (300px)
         return {
@@ -229,6 +256,12 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
     const targetDistortionRef = useRef(-0.5); // Start with STARTING_DISTORTION
     const hoveredMeshRef = useRef<THREE.Mesh | null>(null);
     const isDraggingRef = useRef(false);
+    
+    // Layout tracking for resize
+    const currentLayoutRef = useRef<{ width: number; breakpoint: 'mobile' | 'desktop' | 'large' }>({
+        width: typeof window !== 'undefined' ? window.innerWidth : 1920,
+        breakpoint: 'desktop'
+    });
 
     // Main Three.js setup
     useEffect(() => {
@@ -537,8 +570,26 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
         animate();
 
         // Handle resize
+        let resizeTimeout: NodeJS.Timeout;
         const handleResize = () => {
-            const aspect = window.innerWidth / window.innerHeight;
+            const newWidth = window.innerWidth;
+            
+            // Determine new breakpoint
+            let newBreakpoint: 'mobile' | 'desktop' | 'large' = 'desktop';
+            if (newWidth < MOBILE_BREAKPOINT) {
+                newBreakpoint = 'mobile';
+            } else if (newWidth > 2000) {
+                newBreakpoint = 'large';
+            }
+            
+            // Check if we need to recalculate layout (breakpoint changed or significant size change in large mode)
+            const oldBreakpoint = currentLayoutRef.current.breakpoint;
+            const oldWidth = currentLayoutRef.current.width;
+            const breakpointChanged = oldBreakpoint !== newBreakpoint;
+            const significantSizeChange = newBreakpoint === 'large' && Math.abs(newWidth - oldWidth) > 200;
+            
+            // Update camera and renderer (always)
+            const aspect = newWidth / window.innerHeight;
             const frustumSize = window.innerHeight;
 
             camera.left = (frustumSize * aspect) / -2;
@@ -548,17 +599,33 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
             camera.updateProjectionMatrix();
 
             const pixelRatio = Math.min(window.devicePixelRatio, 2);
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(newWidth, window.innerHeight);
             renderer.setPixelRatio(pixelRatio);
             
             // Resize render target with pixel ratio for clarity
-            renderTarget.setSize(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
+            renderTarget.setSize(newWidth * pixelRatio, window.innerHeight * pixelRatio);
+            
+            // If breakpoint changed or significant size change, trigger full re-layout
+            if (breakpointChanged || significantSizeChange) {
+                currentLayoutRef.current = { width: newWidth, breakpoint: newBreakpoint };
+                
+                // Debounce the full re-layout to avoid multiple rapid updates
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    // Force component remount by updating a key or state
+                    // This is the simplest way to fully recreate the grid with new sizes
+                    window.location.reload();
+                }, 500);
+            } else {
+                currentLayoutRef.current.width = newWidth;
+            }
         };
 
         window.addEventListener('resize', handleResize);
 
         // Cleanup
         return () => {
+            clearTimeout(resizeTimeout);
             document.body.style.overflow = 'auto';
             document.body.style.cursor = 'auto';
             document.body.style.touchAction = 'auto';
