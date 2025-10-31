@@ -534,50 +534,14 @@ DISTORTION_RELEASE_DURATION = 0.4s
 
 ---
 
-## Troubleshooting
-
-**Problem:** Images not loading
-
-- **Check:** Network tab in browser dev tools
-- **Check:** Image URLs in dummyData.ts
-- **Check:** CORS settings if using external images
-
-**Problem:** Text not showing
-
-- **Check:** Font files exist in `/public/fonts/`
-- **Check:** Browser console for font loading errors
-- **Check:** `troika-three-text` package is installed
-
-**Problem:** Performance issues
-
-- **Check:** Reduce number of projects
-- **Check:** Reduce MSAA samples (from 8 to 4)
-- **Check:** Reduce render target pixel ratio
-- **Check:** Reduce noise intensity
-
-**Problem:** Distortion not working
-
-- **Check:** Post-processing shader uniforms are set
-- **Check:** Render target is being used
-- **Check:** Animation loop is running
-
-**Problem:** Infinite scroll "popping"
-
-- **Check:** Wrap bounds are correct (should be half of content width/height)
-- **Check:** Initial scene position is centered
-- **Check:** Grid duplicates are positioned correctly
-
----
-
 ## Future Improvements Ideas
 
 1. **Lazy Loading:** Only load images when they're about to be visible
 2. **Virtual Scrolling:** Only render visible items (currently renders all)
 3. **Web Workers:** Move heavy calculations off main thread
 4. **Texture Compression:** Use smaller image formats
-5. **Caching:** Cache rendered textures
-6. **Adaptive Quality:** Reduce effects on low-end devices
-7. **Pagination:** Load projects in chunks instead of all at once
+5. **Adaptive Quality:** Reduce effects on low-end devices
+6. **Pagination:** Load projects in chunks instead of all at once
 
 ---
 
