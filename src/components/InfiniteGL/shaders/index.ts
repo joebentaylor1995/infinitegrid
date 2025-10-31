@@ -122,18 +122,15 @@ export const fragmentPost = `
         return grain;
     }
 
-    // Vignette effect - darkens edges with rectangular gradient (edge to edge)
+    // Vignette effect - darkens edges with radial gradient
     float vignette(vec2 uv) {
-        // Get rectangular distance from center (edge-to-edge, not radial)
+        // Get radial distance from center (0.0 at center, 0.707 at corners)
         vec2 centered = uv - 0.5;
+        float dist = length(centered);
         
-        // Use maximum of horizontal and vertical distance for rectangular shape
-        // This creates edge-to-edge vignette instead of radial
-        float distX = abs(centered.x) * 2.0; // Normalize to 0-1 (0.5 * 2 = 1.0)
-        float distY = abs(centered.y) * 2.0;
-        
-        // Use maximum distance to create rectangular vignette
-        float normalizedDist = max(distX, distY);
+        // Normalize to 0-1 range (0 = center, 1 = corner)
+        float maxDist = length(vec2(0.5));
+        float normalizedDist = dist / maxDist;
         
         // Apply power curve for smooth falloff
         float vignetteMask = pow(1.0 - normalizedDist, uVignettePower);

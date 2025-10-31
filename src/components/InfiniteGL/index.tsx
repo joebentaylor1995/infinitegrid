@@ -29,8 +29,8 @@ const MOBILE_BREAKPOINT = 768;
 const NOISE_INTENSITY = 0.05;
 
 // Vignette settings
-const VIGNETTE_INTENSITY = 0.9; // How dark the edges get (0.0 = no vignette, 1.0 = fully dark)
-const VIGNETTE_POWER = 0.4; // Falloff curve (1.0 = linear, higher = more abrupt)
+const VIGNETTE_INTENSITY = 0.25; // How dark the edges get (0.0 = no vignette, 1.0 = fully dark)
+const VIGNETTE_POWER = 1.5; // Falloff curve (1.0 = linear, higher = more abrupt)
 
 // Image vignette settings (less intense than global vignette)
 const IMAGE_VIGNETTE_INTENSITY = 0.15; // Subtle vignette on each image
