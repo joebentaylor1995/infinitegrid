@@ -25,6 +25,17 @@ import { InfiniteGLProps, ProjectPlaneData } from './interface';
 // Responsive breakpoint
 const MOBILE_BREAKPOINT = 768;
 
+// CRT static noise intensity (0.0 = no noise, 0.05 = subtle, 0.1 = heavy)
+const NOISE_INTENSITY = 0.05;
+
+// Vignette settings
+const VIGNETTE_INTENSITY = 0.9; // How dark the edges get (0.0 = no vignette, 1.0 = fully dark)
+const VIGNETTE_POWER = 0.4; // Falloff curve (1.0 = linear, higher = more abrupt)
+
+// Image vignette settings (less intense than global vignette)
+const IMAGE_VIGNETTE_INTENSITY = 0.15; // Subtle vignette on each image
+const IMAGE_VIGNETTE_POWER = 0.4; // Falloff curve for image vignette
+
 // Helper to get responsive grid layout
 const getGridLayout = () => {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
@@ -71,8 +82,8 @@ const getDistortionSettings = () => {
             BASE_DISTORTION: 0,
             DISTORTION_AMOUNT: -0.25, // Reduced for mobile
             MAX_DISTORTION: -0.2, // Reduced for mobile
-            VELOCITY_SCALE: 0.010, // Reduced sensitivity for mobile
-            LOAD_IN_DURATION: 0.4,
+            VELOCITY_SCALE: 0.005, // Reduced sensitivity for mobile
+            LOAD_IN_DURATION: 0.75,
             ANIMATION_DURATION: 0.35, // Near-instant for native feel
             DRAG_MULTIPLIER: 2, // Maximum direct response for native feel
             LONG_PRESS_THRESHOLD: 300, // Faster tap detection for mobile
@@ -83,8 +94,8 @@ const getDistortionSettings = () => {
             BASE_DISTORTION: 0,
             DISTORTION_AMOUNT: -0.5,
             MAX_DISTORTION: -0.5,
-            VELOCITY_SCALE: 0.010,
-            LOAD_IN_DURATION: 0.8,
+            VELOCITY_SCALE: 0.0025,
+            LOAD_IN_DURATION: 1.2,
             ANIMATION_DURATION: 1.5, // Smooth desktop experience
             DRAG_MULTIPLIER: 2,
             LONG_PRESS_THRESHOLD: 500,
@@ -281,6 +292,8 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                         uResolution: { value: new THREE.Vector2(PLANE_WIDTH, PLANE_HEIGHT) },
                         uBorderRadius: { value: 6.0 }, // 6px border radius
                         uScale: { value: 1.0 }, // Image scale (1.0 = normal)
+                        uImageVignetteIntensity: { value: IMAGE_VIGNETTE_INTENSITY },
+                        uImageVignettePower: { value: IMAGE_VIGNETTE_POWER },
                     },
                     vertexShader: vertexTexture,
                     fragmentShader: fragmentTexture,
@@ -433,6 +446,10 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
             uniforms: {
                 tDiffuse: { value: renderTarget.texture },
                 uDistortionStrength: { value: 0 },
+                uTime: { value: 0 },
+                uNoiseIntensity: { value: NOISE_INTENSITY },
+                uVignetteIntensity: { value: VIGNETTE_INTENSITY },
+                uVignettePower: { value: VIGNETTE_POWER },
             },
             vertexShader: vertexPost,
             fragmentShader: fragmentPost,
@@ -452,6 +469,7 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
 
             // Update post-processing material with distortion
             postMaterial.uniforms.uDistortionStrength.value = distortionStrengthRef.current;
+            postMaterial.uniforms.uTime.value = performance.now() * 0.001; // Convert to seconds
 
             // Render scene to render target
             renderer.setRenderTarget(renderTarget);
@@ -794,29 +812,39 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                 
                 const planes = projectPlanesRef.current;
 
-                // Fade in all image planes
+                // Fade in all image planes with stagger
                 gsap.to(
                     planes.map(p => p.material.uniforms.uAlpha),
                     {
                         value: 1,
                         duration: LOAD_IN_DURATION,
                         ease: theme.easing.bezzy3,
+                        stagger: {
+                            amount: 0.6, // Total stagger time
+                            from: "random", // Stagger from first to last
+                            ease: "power2.inOut"
+                        }
                     }
                 );
 
-                // Fade in all text objects
+                // Fade in all text objects with stagger
                 const scene = sceneRef.current;
                 if (scene) {
+                    const textObjects: any[] = [];
                     scene.traverse((obj) => {
                         if (obj instanceof Text) {
-                            // Tags at 60% opacity, titles at 100%
-                            const targetOpacity = obj.userData.type === 'tags' ? 0.6 : 1.0;
-                            gsap.to(obj, {
-                                fillOpacity: targetOpacity,
-                                duration: LOAD_IN_DURATION,
-                                ease: theme.easing.bezzy3,
-                            });
+                            textObjects.push(obj);
                         }
+                    });
+                    
+                    textObjects.forEach((obj) => {
+                        // Tags at 60% opacity, titles at 100%
+                        const targetOpacity = obj.userData.type === 'tags' ? 0.6 : 1.0;
+                        gsap.to(obj, {
+                            fillOpacity: targetOpacity,
+                            duration: LOAD_IN_DURATION,
+                            ease: theme.easing.bezzy3,
+                        });
                     });
                 }
 
