@@ -151,8 +151,9 @@ const SCROLL_STOP_DELAY = 150;
 
 // Interaction
 const DRAG_MINIMUM = 5;
-const HOVER_SCALE = 1.05; // Image zoom on hover (1.0 = no zoom, 1.1 = 10% zoom)
-const HOVER_DURATION = 0.4; // Hover animation duration in seconds
+const HOVER_SCALE = 1.1; // Image zoom on hover (1.0 = no zoom, 1.1 = 10% zoom)
+const HOVER_DURATION = 1.0; // Hover animation duration in seconds
+const HOVER_EASE = 'cubic-bezier(0.292, 0.001, 0.006, 0.995)'; // Custom easing for smooth zoom
 
 // Helper Functions
 // ------------
@@ -871,11 +872,11 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                             duration: 0.3,
                             ease: 'power2.out',
                         });
-                        gsap.to(prevMaterial.uniforms.uScale, {
-                            value: 1.0,
-                            duration: HOVER_DURATION,
-                            ease: theme.easing.bezzy3,
-                        });
+                    gsap.to(prevMaterial.uniforms.uScale, {
+                        value: 1.0,
+                        duration: HOVER_DURATION,
+                        ease: HOVER_EASE,
+                    });
                     }
 
                     // Set new hovered mesh to color and zoom
@@ -891,11 +892,11 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                         duration: 0.3,
                         ease: 'power2.out',
                     });
-                    gsap.to(material.uniforms.uScale, {
-                        value: HOVER_SCALE,
-                        duration: HOVER_DURATION,
-                        ease: theme.easing.bezzy3,
-                    });
+                gsap.to(material.uniforms.uScale, {
+                    value: HOVER_SCALE,
+                    duration: HOVER_DURATION,
+                    ease: HOVER_EASE,
+                });
                 }
             } else {
                 // No hover - reset current hovered mesh
@@ -911,11 +912,11 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                         duration: 0.3,
                         ease: 'power2.out',
                     });
-                    gsap.to(material.uniforms.uScale, {
-                        value: 1.0,
-                        duration: HOVER_DURATION,
-                        ease: theme.easing.bezzy3,
-                    });
+                gsap.to(material.uniforms.uScale, {
+                    value: 1.0,
+                    duration: HOVER_DURATION,
+                    ease: HOVER_EASE,
+                });
                     hoveredMeshRef.current = null;
                 }
             }
