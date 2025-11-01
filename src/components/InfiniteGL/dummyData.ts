@@ -3,7 +3,7 @@ export const dummyData = [
 		"title": "Pocketchange",
 		"href": "https://example.com/1",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=1",
+			"src": "https://picsum.photos/2000/1500?random=1",
 			"alt": "Random"
 		},
 		"tags": ["UI/UX", "Branding"]
@@ -12,7 +12,7 @@ export const dummyData = [
 		"title": "Engineshop",
 		"href": "https://example.com/2",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=2",
+			"src": "https://picsum.photos/2000/1500?random=2",
 			"alt": "Random"
 		},
 		"tags": ["Branding", "Strategy"]
@@ -21,7 +21,7 @@ export const dummyData = [
 		"title": "12 studio",
 		"href": "https://example.com/3",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=3",
+			"src": "https://picsum.photos/2000/1500?random=3",
 			"alt": "Random"
 		},
 		"tags": ["Creative Coding", "UI/UX"]
@@ -30,7 +30,7 @@ export const dummyData = [
 		"title": "Gridly",
 		"href": "https://example.com/4",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=4",
+			"src": "https://picsum.photos/2000/1500?random=4",
 			"alt": "Random"
 		},
 		"tags": ["Strategy", "UI/UX"]
@@ -39,7 +39,7 @@ export const dummyData = [
 		"title": "Veritas",
 		"href": "https://example.com/5",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=5",
+			"src": "https://picsum.photos/2000/1500?random=5",
 			"alt": "Random"
 		},
 		"tags": ["Branding", "Creative Coding"]
@@ -48,7 +48,7 @@ export const dummyData = [
 		"title": "Nuance",
 		"href": "https://example.com/6",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=6",
+			"src": "https://picsum.photos/2000/1500?random=6",
 			"alt": "Random"
 		},
 		"tags": ["Strategy"]
@@ -57,7 +57,7 @@ export const dummyData = [
 		"title": "Northstar",
 		"href": "https://example.com/7",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=7",
+			"src": "https://picsum.photos/2000/1500?random=7",
 			"alt": "Random"
 		},
 		"tags": ["UI/UX", "Creative Coding", "Branding"]
@@ -66,7 +66,7 @@ export const dummyData = [
 		"title": "Amble",
 		"href": "https://example.com/8",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=8",
+			"src": "https://picsum.photos/2000/1500?random=8",
 			"alt": "Random"
 		},
 		"tags": ["UI/UX"]
@@ -75,7 +75,7 @@ export const dummyData = [
 		"title": "Moonbase",
 		"href": "https://example.com/9",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=9",
+			"src": "https://picsum.photos/2000/1500?random=9",
 			"alt": "Random"
 		},
 		"tags": ["Branding", "Strategy"]
@@ -84,7 +84,7 @@ export const dummyData = [
 		"title": "Ripple",
 		"href": "https://example.com/10",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=10",
+			"src": "https://picsum.photos/2000/1500?random=10",
 			"alt": "Random"
 		},
 		"tags": ["Creative Coding", "UI/UX"]
@@ -93,7 +93,7 @@ export const dummyData = [
 		"title": "Bitwise",
 		"href": "https://example.com/11",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=11",
+			"src": "https://picsum.photos/2000/1500?random=11",
 			"alt": "Random"
 		},
 		"tags": ["Branding"]
@@ -102,7 +102,7 @@ export const dummyData = [
 		"title": "Carta",
 		"href": "https://example.com/12",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=12",
+			"src": "https://picsum.photos/2000/1500?random=12",
 			"alt": "Random"
 		},
 		"tags": ["Strategy", "UI/UX"]
@@ -111,7 +111,7 @@ export const dummyData = [
 		"title": "Venture",
 		"href": "https://example.com/13",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=13",
+			"src": "https://picsum.photos/2000/1500?random=13",
 			"alt": "Random"
 		},
 		"tags": ["Creative Coding"]
@@ -120,7 +120,7 @@ export const dummyData = [
 		"title": "Studio Alliance",
 		"href": "https://example.com/14",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=14",
+			"src": "https://picsum.photos/2000/1500?random=14",
 			"alt": "Random"
 		},
 		"tags": ["UI/UX", "Branding", "Strategy"]
@@ -129,7 +129,7 @@ export const dummyData = [
 		"title": "Cascade",
 		"href": "https://example.com/15",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=15",
+			"src": "https://picsum.photos/2000/1500?random=15",
 			"alt": "Random"
 		},
 		"tags": ["Creative Coding", "Branding"]
@@ -138,7 +138,7 @@ export const dummyData = [
 		"title": "Atlas IO",
 		"href": "https://example.com/16",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=16",
+			"src": "https://picsum.photos/2000/1500?random=16",
 			"alt": "Random 16"
 		},
 		"tags": ["UI/UX", "Strategy"]
@@ -147,7 +147,7 @@ export const dummyData = [
 		"title": "Float",
 		"href": "https://example.com/17",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=17",
+			"src": "https://picsum.photos/2000/1500?random=17",
 			"alt": "Random 17"
 		},
 		"tags": ["Creative Coding", "Strategy"]
@@ -156,7 +156,7 @@ export const dummyData = [
 		"title": "Quip",
 		"href": "https://example.com/18",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=18",
+			"src": "https://picsum.photos/2000/1500?random=18",
 			"alt": "Random 18"
 		},
 		"tags": ["Branding", "UI/UX"]
@@ -165,7 +165,7 @@ export const dummyData = [
 		"title": "Glance",
 		"href": "https://example.com/19",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=19",
+			"src": "https://picsum.photos/2000/1500?random=19",
 			"alt": "Random 19"
 		},
 		"tags": ["Creative Coding"]
@@ -174,7 +174,7 @@ export const dummyData = [
 		"title": "Niko",
 		"href": "https://example.com/20",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=20",
+			"src": "https://picsum.photos/2000/1500?random=20",
 			"alt": "Random 20"
 		},
 		"tags": ["UI/UX", "Branding"]
@@ -183,7 +183,7 @@ export const dummyData = [
 		"title": "Adyen",
 		"href": "https://example.com/21",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=21",
+			"src": "https://picsum.photos/2000/1500?random=21",
 			"alt": "Random 21"
 		},
 		"tags": ["Strategy", "Branding"]
@@ -192,7 +192,7 @@ export const dummyData = [
 		"title": "Pixelsmiths",
 		"href": "https://example.com/22",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=22",
+			"src": "https://picsum.photos/2000/1500?random=22",
 			"alt": "Random 22"
 		},
 		"tags": ["UI/UX", "Creative Coding"]
@@ -201,7 +201,7 @@ export const dummyData = [
 		"title": "Obvious",
 		"href": "https://example.com/23",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=23",
+			"src": "https://picsum.photos/2000/1500?random=23",
 			"alt": "Random 23"
 		},
 		"tags": ["Creative Coding", "Branding"]
@@ -210,7 +210,7 @@ export const dummyData = [
 		"title": "TwinFox",
 		"href": "https://example.com/24",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=24",
+			"src": "https://picsum.photos/2000/1500?random=24",
 			"alt": "Random 24"
 		},
 		"tags": ["UI/UX"]
@@ -219,7 +219,7 @@ export const dummyData = [
 		"title": "Hexcore",
 		"href": "https://example.com/25",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=25",
+			"src": "https://picsum.photos/2000/1500?random=25",
 			"alt": "Random 25"
 		},
 		"tags": ["Branding"]
@@ -228,7 +228,7 @@ export const dummyData = [
 		"title": "XO Studio",
 		"href": "https://example.com/26",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=26",
+			"src": "https://picsum.photos/2000/1500?random=26",
 			"alt": "Random 26"
 		},
 		"tags": ["Strategy"]
@@ -237,7 +237,7 @@ export const dummyData = [
 		"title": "Eclipse",
 		"href": "https://example.com/27",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=27",
+			"src": "https://picsum.photos/2000/1500?random=27",
 			"alt": "Random 27"
 		},
 		"tags": ["UI/UX", "Creative Coding"]
@@ -246,7 +246,7 @@ export const dummyData = [
 		"title": "Paperplane",
 		"href": "https://example.com/28",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=28",
+			"src": "https://picsum.photos/2000/1500?random=28",
 			"alt": "Random 28"
 		},
 		"tags": ["Branding", "Strategy"]
@@ -255,7 +255,7 @@ export const dummyData = [
 		"title": "Vault",
 		"href": "https://example.com/29",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=29",
+			"src": "https://picsum.photos/2000/1500?random=29",
 			"alt": "Random 29"
 		},
 		"tags": ["Creative Coding", "UI/UX"]
@@ -264,7 +264,7 @@ export const dummyData = [
 		"title": "Origin",
 		"href": "https://example.com/30",
 		"image": {
-			"src": "https://picsum.photos/800/600?random=30",
+			"src": "https://picsum.photos/2000/1500?random=30",
 			"alt": "Random 30"
 		},
 		"tags": ["Branding", "Strategy", "Creative Coding"]

@@ -243,6 +243,10 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
     const sceneRef = useRef<THREE.Scene | null>(null);
     const cameraRef = useRef<THREE.OrthographicCamera | null>(null);
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+    const renderTargetRef = useRef<THREE.WebGLRenderTarget | null>(null);
+    const postSceneRef = useRef<THREE.Scene | null>(null);
+    const postCameraRef = useRef<THREE.OrthographicCamera | null>(null);
+    const animationFrameIdRef = useRef<number>(0);
     const projectPlanesRef = useRef<ProjectPlaneData[]>([]);
     const raycasterRef = useRef<THREE.Raycaster>(new THREE.Raycaster());
     const mouseRef = useRef<THREE.Vector2>(new THREE.Vector2());
@@ -257,6 +261,7 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
     const targetDistortionRef = useRef(-0.5); // Start with STARTING_DISTORTION
     const hoveredMeshRef = useRef<THREE.Mesh | null>(null);
     const isDraggingRef = useRef(false);
+    const isTransitioningRef = useRef(false); // Track if we're transitioning to full screen
     
     // Layout tracking for resize
     const currentLayoutRef = useRef<{ width: number; breakpoint: 'mobile' | 'desktop' | 'large' }>({
@@ -525,10 +530,13 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                 samples: 8, // MSAA antialiasing for better text quality
             }
         );
+        renderTargetRef.current = renderTarget;
 
         // Create post-processing scene
         const postScene = new THREE.Scene();
         const postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        postSceneRef.current = postScene;
+        postCameraRef.current = postCamera;
         
         // Create full-screen quad with distortion shader
         const postMaterial = new THREE.ShaderMaterial({
@@ -549,9 +557,8 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
         postScene.add(postQuad);
 
         // Animation loop
-        let animationFrameId: number;
         const animate = () => {
-            animationFrameId = requestAnimationFrame(animate);
+            animationFrameIdRef.current = requestAnimationFrame(animate);
 
             // Smooth distortion interpolation
             distortionStrengthRef.current += (targetDistortionRef.current - distortionStrengthRef.current) * 0.1;
@@ -634,7 +641,9 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
             document.removeEventListener('touchstart', preventTouchDefaults);
             document.removeEventListener('touchmove', preventTouchDefaults);
             
-            cancelAnimationFrame(animationFrameId);
+            if (animationFrameIdRef.current) {
+                cancelAnimationFrame(animationFrameIdRef.current);
+            }
             window.removeEventListener('resize', handleResize);
             
             // Dispose render target
@@ -766,13 +775,155 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                 const pressDuration = Date.now() - pressStartTime;
                 const isQuickClick = pressDuration < LONG_PRESS_THRESHOLD;
 
-                // Navigate if quick click on a mesh
-                if (!hasDragged && clickedMesh && isQuickClick) {
+                // Animate to full screen if quick click on a mesh
+                if (!hasDragged && clickedMesh && isQuickClick && !isTransitioningRef.current) {
                     const href = clickedMesh.userData.href;
                     if (href) {
-                        setTimeout(() => {
-                            router.push(href);
-                        }, 10);
+                        isTransitioningRef.current = true;
+                        
+                        // Get the clicked mesh's material
+                        const clickedMaterial = clickedMesh.material as THREE.ShaderMaterial;
+                        
+                        // Get current mesh position in world space
+                        const meshWorldPos = new THREE.Vector3();
+                        clickedMesh.getWorldPosition(meshWorldPos);
+                        
+                        // Calculate where the mesh needs to go to be centered in the camera view
+                        // The camera is looking at the scene, which may have been moved by scrolling
+                        // We need to position the mesh at the center of the camera's view
+                        const camera = cameraRef.current;
+                        if (!camera) return;
+                        
+                        // Get scene position to calculate offset
+                        const scenePos = scene.position;
+                        
+                        // Target position should be at camera center, accounting for scene offset
+                        // Camera is at (0, 0, 10) looking at the scene
+                        // If scene has moved, we need to compensate
+                        const targetX = -scenePos.x;
+                        const targetY = -scenePos.y;
+                        
+                        // Calculate scale needed to fill screen
+                        const viewportWidth = window.innerWidth;
+                        const viewportHeight = window.innerHeight;
+                        const meshWidth = PLANE_WIDTH;
+                        const meshHeight = PLANE_HEIGHT;
+                        
+                        // Scale to cover viewport (use the larger scale factor)
+                        const scaleX = viewportWidth / meshWidth;
+                        const scaleY = viewportHeight / meshHeight;
+                        const targetScale = Math.max(scaleX, scaleY) * 1.1; // Slight overflow
+                        
+                        // Stop the animation loop during transition to prevent interference
+                        if (animationFrameIdRef.current) {
+                            cancelAnimationFrame(animationFrameIdRef.current);
+                        }
+                        
+                        // Get post-processing material for distortion effect
+                        const postQuad = postSceneRef.current?.children[0] as THREE.Mesh;
+                        const postMaterial = postQuad?.material as THREE.ShaderMaterial;
+                        
+                        // Create animation timeline
+                        const tl = gsap.timeline({
+                            onComplete: () => {
+                                // NOTE: Routing commented out to view full animation
+                                // TODO: Uncomment when ready to implement page transitions
+                                // router.push(href);
+                                
+                                // For now, just log where we would navigate
+                                console.log('Would navigate to:', href);
+                                
+                                // Keep the final state visible - don't restart animation loop
+                            }
+                        });
+                        
+                        // Fade out all other meshes and text
+                        projectPlanesRef.current.forEach(({ mesh, material }) => {
+                            if (mesh !== clickedMesh) {
+                                tl.to(material.uniforms.uAlpha, {
+                                    value: 0,
+                                    duration: 0.6,
+                                    ease: 'power2.inOut'
+                                }, 0);
+                            }
+                        });
+                        
+                        // Fade out all text
+                        scene.children.forEach((child) => {
+                            if (child.userData.isText) {
+                                tl.to(child, {
+                                    fillOpacity: 0,
+                                    duration: 0.4,
+                                    ease: 'power2.inOut'
+                                }, 0);
+                            }
+                        });
+                        
+                        // Add dramatic distortion effect during transition
+                        // Distort inward (pincushion) as image expands
+                        if (postMaterial && postMaterial.uniforms.uDistortionStrength) {
+                            // Start with current distortion
+                            const startDistortion = postMaterial.uniforms.uDistortionStrength.value;
+                            
+                            // Animate distortion: current → intense pincushion → back to 0
+                            tl.to(postMaterial.uniforms.uDistortionStrength, {
+                                value: -0.5, // Strong pincushion effect
+                                duration: 0.5,
+                                ease: 'power2.in'
+                            }, 0);
+                            
+                            tl.to(postMaterial.uniforms.uDistortionStrength, {
+                                value: 0, // Return to no distortion
+                                duration: 0.7,
+                                ease: 'power2.out'
+                            }, 0.5);
+                        }
+                        
+                        // Animate clicked mesh to center of viewport and scale up
+                        tl.to(clickedMesh.position, {
+                            x: targetX,
+                            y: targetY,
+                            z: 5, // Move forward (reduced from 10 to stay in camera view)
+                            duration: 1.2,
+                            ease: 'power3.inOut',
+                            onUpdate: () => {
+                                // Force render during animation
+                                if (rendererRef.current && renderTargetRef.current && sceneRef.current && cameraRef.current && postSceneRef.current && postCameraRef.current) {
+                                    rendererRef.current.setRenderTarget(renderTargetRef.current);
+                                    rendererRef.current.render(sceneRef.current, cameraRef.current);
+                                    rendererRef.current.setRenderTarget(null);
+                                    rendererRef.current.render(postSceneRef.current, postCameraRef.current);
+                                }
+                            }
+                        }, 0);
+                        
+                        tl.to(clickedMesh.scale, {
+                            x: targetScale,
+                            y: targetScale,
+                            duration: 1.2,
+                            ease: 'power3.inOut'
+                        }, 0);
+                        
+                        // Animate to full color
+                        tl.to(clickedMaterial.uniforms.uGrayscale, {
+                            value: 0.0,
+                            duration: 0.8,
+                            ease: 'power2.out'
+                        }, 0.2);
+                        
+                        // Remove overlay
+                        tl.to(clickedMaterial.uniforms.uOverlayOpacity, {
+                            value: 0.0,
+                            duration: 0.8,
+                            ease: 'power2.out'
+                        }, 0.2);
+                        
+                        // Slight zoom on image itself
+                        tl.to(clickedMaterial.uniforms.uScale, {
+                            value: 1.05,
+                            duration: 1.2,
+                            ease: 'power2.out'
+                        }, 0);
                     }
                 }
 
