@@ -17,6 +17,7 @@ export interface ProjectPlaneData {
         href: string;
         title: string;
         tags: string[];
+        imageSrc: string;
         duplicateIndex: number;
         projectIndex: number;
     };

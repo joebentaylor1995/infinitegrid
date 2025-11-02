@@ -1,270 +1,270 @@
 export const dummyData = [
 	{
 		"title": "Pocketchange",
-		"href": "https://example.com/1",
+		"href": "/project/pocketchange",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=1",
+			"src": "https://picsum.photos/id/1/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["UI/UX", "Branding"]
 	},
 	{
 		"title": "Engineshop",
-		"href": "https://example.com/2",
+		"href": "/project/engineshop",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=2",
+			"src": "https://picsum.photos/id/2/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["Branding", "Strategy"]
 	},
 	{
 		"title": "12 studio",
-		"href": "https://example.com/3",
+		"href": "/project/12-studio",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=3",
+			"src": "https://picsum.photos/id/3/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["Creative Coding", "UI/UX"]
 	},
 	{
 		"title": "Gridly",
-		"href": "https://example.com/4",
+		"href": "/project/gridly",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=4",
+			"src": "https://picsum.photos/id/4/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["Strategy", "UI/UX"]
 	},
 	{
 		"title": "Veritas",
-		"href": "https://example.com/5",
+		"href": "/project/veritas",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=5",
+			"src": "https://picsum.photos/id/5/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["Branding", "Creative Coding"]
 	},
 	{
 		"title": "Nuance",
-		"href": "https://example.com/6",
+		"href": "/project/nuance",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=6",
+			"src": "https://picsum.photos/id/6/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["Strategy"]
 	},
 	{
 		"title": "Northstar",
-		"href": "https://example.com/7",
+		"href": "/project/northstar",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=7",
+			"src": "https://picsum.photos/id/7/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["UI/UX", "Creative Coding", "Branding"]
 	},
 	{
 		"title": "Amble",
-		"href": "https://example.com/8",
+		"href": "/project/amble",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=8",
+			"src": "https://picsum.photos/id/8/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["UI/UX"]
 	},
 	{
 		"title": "Moonbase",
-		"href": "https://example.com/9",
+		"href": "/project/moonbase",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=9",
+			"src": "https://picsum.photos/id/9/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["Branding", "Strategy"]
 	},
 	{
 		"title": "Ripple",
-		"href": "https://example.com/10",
+		"href": "/project/ripple",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=10",
+			"src": "https://picsum.photos/id/10/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["Creative Coding", "UI/UX"]
 	},
 	{
 		"title": "Bitwise",
-		"href": "https://example.com/11",
+		"href": "/project/bitwise",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=11",
+			"src": "https://picsum.photos/id/11/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["Branding"]
 	},
 	{
 		"title": "Carta",
-		"href": "https://example.com/12",
+		"href": "/project/carta",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=12",
+			"src": "https://picsum.photos/id/12/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["Strategy", "UI/UX"]
 	},
 	{
 		"title": "Venture",
-		"href": "https://example.com/13",
+		"href": "/project/venture",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=13",
+			"src": "https://picsum.photos/id/13/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["Creative Coding"]
 	},
 	{
 		"title": "Studio Alliance",
-		"href": "https://example.com/14",
+		"href": "/project/studio-alliance",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=14",
+			"src": "https://picsum.photos/id/14/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["UI/UX", "Branding", "Strategy"]
 	},
 	{
 		"title": "Cascade",
-		"href": "https://example.com/15",
+		"href": "/project/cascade",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=15",
+			"src": "https://picsum.photos/id/15/2000/1500",
 			"alt": "Random"
 		},
 		"tags": ["Creative Coding", "Branding"]
 	},
 	{
 		"title": "Atlas IO",
-		"href": "https://example.com/16",
+		"href": "/project/atlas-io",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=16",
+			"src": "https://picsum.photos/id/16/2000/1500",
 			"alt": "Random 16"
 		},
 		"tags": ["UI/UX", "Strategy"]
 	},
 	{
 		"title": "Float",
-		"href": "https://example.com/17",
+		"href": "/project/float",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=17",
+			"src": "https://picsum.photos/id/17/2000/1500",
 			"alt": "Random 17"
 		},
 		"tags": ["Creative Coding", "Strategy"]
 	},
 	{
 		"title": "Quip",
-		"href": "https://example.com/18",
+		"href": "/project/quip",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=18",
+			"src": "https://picsum.photos/id/18/2000/1500",
 			"alt": "Random 18"
 		},
 		"tags": ["Branding", "UI/UX"]
 	},
 	{
 		"title": "Glance",
-		"href": "https://example.com/19",
+		"href": "/project/glance",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=19",
+			"src": "https://picsum.photos/id/19/2000/1500",
 			"alt": "Random 19"
 		},
 		"tags": ["Creative Coding"]
 	},
 	{
 		"title": "Niko",
-		"href": "https://example.com/20",
+		"href": "/project/niko",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=20",
+			"src": "https://picsum.photos/id/20/2000/1500",
 			"alt": "Random 20"
 		},
 		"tags": ["UI/UX", "Branding"]
 	},
 	{
 		"title": "Adyen",
-		"href": "https://example.com/21",
+		"href": "/project/adyen",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=21",
+			"src": "https://picsum.photos/id/21/2000/1500",
 			"alt": "Random 21"
 		},
 		"tags": ["Strategy", "Branding"]
 	},
 	{
 		"title": "Pixelsmiths",
-		"href": "https://example.com/22",
+		"href": "/project/pixelsmiths",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=22",
+			"src": "https://picsum.photos/id/22/2000/1500",
 			"alt": "Random 22"
 		},
 		"tags": ["UI/UX", "Creative Coding"]
 	},
 	{
 		"title": "Obvious",
-		"href": "https://example.com/23",
+		"href": "/project/obvious",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=23",
+			"src": "https://picsum.photos/id/23/2000/1500",
 			"alt": "Random 23"
 		},
 		"tags": ["Creative Coding", "Branding"]
 	},
 	{
 		"title": "TwinFox",
-		"href": "https://example.com/24",
+		"href": "/project/twinfox",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=24",
+			"src": "https://picsum.photos/id/24/2000/1500",
 			"alt": "Random 24"
 		},
 		"tags": ["UI/UX"]
 	},
 	{
 		"title": "Hexcore",
-		"href": "https://example.com/25",
+		"href": "/project/hexcore",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=25",
+			"src": "https://picsum.photos/id/25/2000/1500",
 			"alt": "Random 25"
 		},
 		"tags": ["Branding"]
 	},
 	{
 		"title": "XO Studio",
-		"href": "https://example.com/26",
+		"href": "/project/xo-studio",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=26",
+			"src": "https://picsum.photos/id/26/2000/1500",
 			"alt": "Random 26"
 		},
 		"tags": ["Strategy"]
 	},
 	{
 		"title": "Eclipse",
-		"href": "https://example.com/27",
+		"href": "/project/eclipse",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=27",
+			"src": "https://picsum.photos/id/27/2000/1500",
 			"alt": "Random 27"
 		},
 		"tags": ["UI/UX", "Creative Coding"]
 	},
 	{
 		"title": "Paperplane",
-		"href": "https://example.com/28",
+		"href": "/project/paperplane",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=28",
+			"src": "https://picsum.photos/id/28/2000/1500",
 			"alt": "Random 28"
 		},
 		"tags": ["Branding", "Strategy"]
 	},
 	{
 		"title": "Vault",
-		"href": "https://example.com/29",
+		"href": "/project/vault",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=29",
+			"src": "https://picsum.photos/id/29/2000/1500",
 			"alt": "Random 29"
 		},
 		"tags": ["Creative Coding", "UI/UX"]
 	},
 	{
 		"title": "Origin",
-		"href": "https://example.com/30",
+		"href": "/project/origin",
 		"image": {
-			"src": "https://picsum.photos/2000/1500?random=30",
+			"src": "https://picsum.photos/id/30/2000/1500",
 			"alt": "Random 30"
 		},
 		"tags": ["Branding", "Strategy", "Creative Coding"]

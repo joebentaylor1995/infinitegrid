@@ -99,6 +99,11 @@ const nextConfig = {
 		'http://192.168.88.38:3000', // adjust the port if needed
 		'http://192.168.88.38',
 	],
+
+	// /** @type {import('next').NextConfig} */
+	// experimental: {
+	// 	viewTransition: true,
+	// },
 };
 
 module.exports = nextConfig;

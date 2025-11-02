@@ -19,6 +19,7 @@ export const fragmentTexture = `
     uniform float uScale; // Image scale (1.0 = normal, >1.0 = zoomed in)
     uniform float uImageVignetteIntensity;
     uniform float uImageVignettePower;
+    uniform float uClipAmount; // Clip amount (0.0 = no clip, 2.0 = max clip)
 
     varying vec2 vUv;
 

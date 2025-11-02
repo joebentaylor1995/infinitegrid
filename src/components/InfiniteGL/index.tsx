@@ -6,11 +6,12 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { theme } from '@theme';
 import { useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { dummyData } from './dummyData';
 import { Observer } from 'gsap/Observer';
 import { Text } from 'troika-three-text';
 import { vertexTexture, fragmentTexture, vertexPost, fragmentPost } from './shaders';
+import { useTransitionRouter } from 'next-view-transitions';
+import { projectTransition } from '@parts/PageTransitions';
 
 // Styles
 // ------------
@@ -233,7 +234,7 @@ const loadTextureWithCache = (
 // ------------
 const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
     // Router
-    const router = useRouter();
+    const router = useTransitionRouter();
 
     // Data
     const data = infiniteData || dummyData;
@@ -422,6 +423,7 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                     href: project.href,
                     title: project.title,
                     tags: project.tags,
+                    imageSrc: imageSrc, // Store image source for preloading
                     duplicateIndex,
                     projectIndex,
                 };
@@ -823,17 +825,37 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                         const postQuad = postSceneRef.current?.children[0] as THREE.Mesh;
                         const postMaterial = postQuad?.material as THREE.ShaderMaterial;
                         
+                        // Reset the clicked image scale to 1.0 immediately (in case it was hovered)
+                        gsap.set(clickedMaterial.uniforms.uScale, { value: 1.0 });
+                        
+                        // Preload the image for the next page to prevent flash
+                        const imageSrc = clickedMesh.userData.imageSrc;
+                        const preloadImg = new Image();
+                        preloadImg.src = imageSrc;
+                        
                         // Create animation timeline
                         const tl = gsap.timeline({
                             onComplete: () => {
-                                // NOTE: Routing commented out to view full animation
-                                // TODO: Uncomment when ready to implement page transitions
-                                // router.push(href);
-                                
-                                // For now, just log where we would navigate
-                                console.log('Would navigate to:', href);
-                                
-                                // Keep the final state visible - don't restart animation loop
+                                // Wait for image to load before navigating
+                                if (preloadImg.complete) {
+                                    // Image already loaded from cache
+                                    router.push(href, {
+                                        onTransitionReady: projectTransition,
+                                    });
+                                } else {
+                                    // Wait for image to load
+                                    preloadImg.onload = () => {
+                                        router.push(href, {
+                                            onTransitionReady: projectTransition,
+                                        });
+                                    };
+                                    // Fallback - navigate anyway after 100ms
+                                    setTimeout(() => {
+                                        router.push(href, {
+                                            onTransitionReady: projectTransition,
+                                        });
+                                    }, 100);
+                                }
                             }
                         });
                         
@@ -918,9 +940,9 @@ const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
                             ease: 'power2.out'
                         }, 0.2);
                         
-                        // Slight zoom on image itself
+                        // Slight zoom on image itself (from 1.0 to 1.0 - no zoom, keep it stable for transition)
                         tl.to(clickedMaterial.uniforms.uScale, {
-                            value: 1.05,
+                            value: 1.0,
                             duration: 1.2,
                             ease: 'power2.out'
                         }, 0);
