@@ -1,0 +1,8 @@
+[build]
+  command = "npm install --force && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NPM_FLAGS = "--force"
+  NODE_VERSION = "20"
+
