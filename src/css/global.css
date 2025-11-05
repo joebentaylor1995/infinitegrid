@@ -30,6 +30,8 @@ html {
 	font-size: 62.5%; /* 10px base font size for easier rem calculations */
 	interpolate-size: allow-keywords; /* Allow keywords in interpolate-size – Not well supported yet in all browsers */
 	background: #000; /* Black background to prevent white flash during page transitions */
+	opacity: 1; /* Ensure opacity is set for Safari transitions */
+	will-change: opacity; /* Optimize for opacity transitions in Safari */
 }
 
 body {

@@ -12,6 +12,7 @@ import { Text } from 'troika-three-text';
 import { vertexTexture, fragmentTexture, vertexPost, fragmentPost } from './shaders';
 import { useTransitionRouter } from 'next-view-transitions';
 import { projectTransition } from '@parts/PageTransitions';
+import { useRouter } from 'next/navigation';
 
 // Styles
 // ------------
@@ -235,6 +236,7 @@ const loadTextureWithCache = (
 const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
     // Router
     const router = useTransitionRouter();
+    const nextRouter = useRouter();
 
     // Data
     const data = infiniteData || dummyData;
