@@ -14,7 +14,7 @@ import { ReactLenis } from 'lenis/react';
 import dynamic from 'next/dynamic';
 import { useEffect, useRef } from 'react';
 import { ThemeProvider } from 'styled-components';
-import { ViewTransitions } from 'next-view-transitions';
+import { ViewTransitions } from '@utils/viewTransitions';
 
 // Lazy load GridExposer since it's only used in development
 // Disabled SSR as it's not critical for server rendering

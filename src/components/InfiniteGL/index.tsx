@@ -10,9 +10,8 @@ import { dummyData } from './dummyData';
 import { Observer } from 'gsap/Observer';
 import { Text } from 'troika-three-text';
 import { vertexTexture, fragmentTexture, vertexPost, fragmentPost } from './shaders';
-import { useTransitionRouter } from 'next-view-transitions';
+import { useTransitionRouter } from '@utils/viewTransitions';
 import { projectTransition } from '@parts/PageTransitions';
-import { useRouter } from 'next/navigation';
 
 // Styles
 // ------------
@@ -88,8 +87,8 @@ const getGridLayout = () => {
             PLANE_WIDTH,
             PLANE_HEIGHT,
             COLS: 5,
-            GAP: 12,
-            PADDING: 6,
+            GAP: 120,
+            PADDING: 60,
         };
     }
 };
@@ -236,7 +235,6 @@ const loadTextureWithCache = (
 const InfiniteGL = ({ infiniteData, hasClip = true }: InfiniteGLProps) => {
     // Router
     const router = useTransitionRouter();
-    const nextRouter = useRouter();
 
     // Data
     const data = infiniteData || dummyData;
